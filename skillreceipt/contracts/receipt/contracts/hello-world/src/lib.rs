@@ -86,6 +86,14 @@ impl ReceiptContract {
             .get(&DataKey::Receipt(receipt_id))
             .expect("Receipt not found")
     }
+
+    /// Get current receipt counter
+    pub fn get_receipt_counter(env: Env) -> u64 {
+        env.storage()
+            .instance()
+            .get(&DataKey::Counter)
+            .unwrap_or(0)
+    }
 }
 
 #[cfg(test)]

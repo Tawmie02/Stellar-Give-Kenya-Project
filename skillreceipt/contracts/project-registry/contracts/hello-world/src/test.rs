@@ -34,3 +34,36 @@ fn test_create_project() {
     assert_eq!(project.id, 1);
     assert_eq!(project.amount, 100);
 }
+
+#[test]
+fn test_submit_and_get_applications() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = Address::generate(&env);
+    let freelancer = Address::generate(&env);
+
+    let contract_id = env.register(ProjectRegistry, ());
+    let contract_client = ProjectRegistryClient::new(&env, &contract_id);
+
+    let project_id = contract_client.create_project(
+        &client,
+        &String::from_str(&env, "Build dApp"),
+        &String::from_str(&env, "Build escrow system"),
+        &100i128,
+    );
+
+    contract_client.submit_application(
+        &project_id,
+        &freelancer,
+        &String::from_str(&env, "I am a skilled developer"),
+    );
+
+    let apps = contract_client.get_applications(&project_id);
+    assert_eq!(apps.len(), 1);
+    
+    let app = apps.get(0).unwrap();
+    assert_eq!(app.project_id, project_id);
+    assert_eq!(app.freelancer, freelancer);
+    assert_eq!(app.cover_letter, String::from_str(&env, "I am a skilled developer"));
+}

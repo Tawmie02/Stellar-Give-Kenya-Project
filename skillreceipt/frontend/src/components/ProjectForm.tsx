@@ -19,7 +19,7 @@ export function ProjectForm({ redirectOnSuccess = true, compact = false }: Proje
   const [deadline, setDeadline] = useState('');
   const [error, setError] = useState('');
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !description.trim() || !amount.trim() || !deadline.trim()) {
       setError('All fields are required.');
@@ -30,22 +30,27 @@ export function ProjectForm({ redirectOnSuccess = true, compact = false }: Proje
       return;
     }
 
-    const project = createProject({
-      title: title.trim(),
-      description: description.trim(),
-      amount: amount.trim().includes('XLM') ? amount.trim() : `${amount.trim()} XLM`,
-      deadline: deadline.trim(),
-      clientAddress: address,
-    });
+    try {
+      const project = await createProject({
+        title: title.trim(),
+        description: description.trim(),
+        amount: amount.trim().includes('XLM') ? amount.trim() : `${amount.trim()} XLM`,
+        deadline: deadline.trim(),
+        clientAddress: address,
+      });
 
-    setTitle('');
-    setDescription('');
-    setAmount('');
-    setDeadline('');
-    setError('');
+      setTitle('');
+      setDescription('');
+      setAmount('');
+      setDeadline('');
+      setError('');
 
-    if (redirectOnSuccess) {
-      navigate(`/projects/${project.id}`);
+      if (redirectOnSuccess) {
+        navigate(`/projects/${project.id}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to create project on-chain.');
     }
   }
 

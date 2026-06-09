@@ -15,6 +15,8 @@ import {
 import { useWallet } from '../context/WalletContext';
 import { truncateAddress } from '../utils/format';
 import { DashboardShell } from '../layouts/DashboardShell';
+import { BalancePanel } from "../components/dashboard/BalancePanel";
+
 
 function ClientDashboard() {
   return (

@@ -2,7 +2,7 @@
 
 use soroban_sdk::{
     contract, contractimpl, contracttype,
-    Address, Env, String,
+    Address, Env, String, Vec,
 };
 
 /// -----------------------------
@@ -13,6 +13,8 @@ use soroban_sdk::{
 pub enum DataKey {
     ProjectCounter,
     Project(u64),
+    Application(u64, Address),
+    Applications(u64),
 }
 
 /// -----------------------------
@@ -43,6 +45,18 @@ pub struct Project {
     pub amount: i128,
 
     pub status: ProjectStatus,
+}
+
+/// -----------------------------
+/// APPLICATION STRUCT
+/// -----------------------------
+#[derive(Clone)]
+#[contracttype]
+pub struct Application {
+    pub project_id: u64,
+    pub freelancer: Address,
+    pub cover_letter: String,
+    pub created_at: u64,
 }
 
 /// -----------------------------
@@ -164,6 +178,83 @@ impl ProjectRegistry {
         env.storage()
             .instance()
             .set(&DataKey::Project(project_id), &project);
+    }
+
+    /// Submit application to a project
+    pub fn submit_application(
+        env: Env,
+        project_id: u64,
+        freelancer: Address,
+        cover_letter: String,
+    ) {
+        freelancer.require_auth();
+
+        let project: Project = env
+            .storage()
+            .instance()
+            .get(&DataKey::Project(project_id))
+            .expect("Project not found");
+
+        if !matches!(project.status, ProjectStatus::Open) {
+            panic!("Project is not open for applications");
+        }
+
+        let app_key = DataKey::Application(project_id, freelancer.clone());
+        if env.storage().instance().has(&app_key) {
+            panic!("Already applied");
+        }
+
+        let application = Application {
+            project_id,
+            freelancer: freelancer.clone(),
+            cover_letter,
+            created_at: env.ledger().timestamp(),
+        };
+
+        env.storage().instance().set(&app_key, &application);
+
+        let mut apps_list: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::Applications(project_id))
+            .unwrap_or_else(|| Vec::new(&env));
+
+        apps_list.push_back(freelancer);
+
+        env.storage()
+            .instance()
+            .set(&DataKey::Applications(project_id), &apps_list);
+    }
+
+    /// Get all applications for a project
+    pub fn get_applications(
+        env: Env,
+        project_id: u64,
+    ) -> Vec<Application> {
+        let mut result = Vec::new(&env);
+        
+        let apps_list: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::Applications(project_id))
+            .unwrap_or_else(|| Vec::new(&env));
+
+        for freelancer in apps_list.iter() {
+            let app_key = DataKey::Application(project_id, freelancer.clone());
+            if let Some(app) = env.storage().instance().get::<_, Application>(&app_key) {
+                result.push_back(app);
+            }
+        }
+
+        result
+    }
+
+    /// Get the current project counter
+    pub fn get_project_counter(env: Env) -> u64 {
+        env.storage()
+            .instance()
+            .get(&DataKey::ProjectCounter)
+            .unwrap_or(0)
     }
 }
 

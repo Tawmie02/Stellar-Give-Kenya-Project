@@ -46,16 +46,21 @@ export function ProjectDetailsPage() {
   const receipt = receipts.find((r) => r.projectId === currentProject.id);
   const hasApplied = applications.some((a) => a.freelancerAddress === address);
 
-  function handleApply(e: React.FormEvent) {
+  async function handleApply(e: React.FormEvent) {
     e.preventDefault();
     if (!address) return;
     if (!coverLetter.trim()) {
       setApplyError('Write a short cover letter before submitting.');
       return;
     }
-    submitApplication(currentProject.id, address, coverLetter.trim());
-    setCoverLetter('');
-    setApplyError('');
+    try {
+      await submitApplication(currentProject.id, address, coverLetter.trim());
+      setCoverLetter('');
+      setApplyError('');
+    } catch (err: any) {
+      console.error(err);
+      setApplyError(err.message || 'Failed to submit application.');
+    }
   }
 
   return (
