@@ -21,9 +21,9 @@ export function LandingPage() {
   const openProjects = projects.filter((p) => p.status === 'OPEN');
   
   // State for FAQ Accordion
-  const [openFaq, setOpenFaq] = useState(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const toggleFaq = (index) => {
+  const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '../context/WalletContext';
-import { Briefcase, Code2, Wallet } from 'lucide-react';
+import { Briefcase, Code2, Wallet, Loader2, AlertCircle } from 'lucide-react';
 
 function truncateAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -41,15 +41,12 @@ function RoleCard({
 }
 
 export function Onboarding() {
-  const { connected, address, connect, setRole, role } = useWallet();
+  const { connected, connecting, address, error, connect, setRole, role } = useWallet();
   const [selection, setSelection] = useState<'client' | 'freelancer' | null>(role);
-  const [isConnecting, setIsConnecting] = useState(false);
   const navigate = useNavigate();
 
   async function handleConnect() {
-    setIsConnecting(true);
     await connect();
-    setIsConnecting(false);
   }
 
   function handleContinue() {
@@ -101,15 +98,24 @@ export function Onboarding() {
               </div>
             )}
 
+            {/* Error Feedback */}
+            {error && (
+              <div className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200 inline-flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {error}
+              </div>
+            )}
+
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               {!connected ? (
                 <button 
                   type="button" 
-                  className="btn-primary w-full sm:w-auto px-8 py-3 text-base" 
+                  className="btn-primary w-full sm:w-auto px-8 py-3 text-base flex items-center justify-center gap-2" 
                   onClick={handleConnect}
-                  disabled={isConnecting}
+                  disabled={connecting}
                 >
-                  {isConnecting ? 'Connecting...' : 'Connect Freighter Wallet'}
+                  {connecting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {connecting ? 'Connecting to Freighter...' : 'Connect Freighter Wallet'}
                 </button>
               ) : (
                 <button

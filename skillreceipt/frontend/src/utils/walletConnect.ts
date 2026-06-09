@@ -1,58 +1,109 @@
-
 import {
-    isConnected,
-    isAllowed,
-    setAllowed,
-    requestAccess,
-  } from "@stellar/freighter-api";
-  
-  // 1. Check if the Freighter extension is installed in the browser
-  export const checkFreighterInstallation = async (): Promise<boolean> => {
-    try {
-      const response = await isConnected();
-      // The API returns an object { isConnected: boolean }, not a raw boolean
-      return response.isConnected === true;
-    } catch (error) {
-      console.error("Freighter not detected:", error);
+  isConnected,
+  isAllowed,
+  setAllowed,
+  requestAccess,
+  getAddress,
+  getNetwork,
+} from "@stellar/freighter-api";
+
+/**
+ * Check if the Freighter browser extension is installed and reachable.
+ */
+export const checkFreighterInstallation = async (): Promise<boolean> => {
+  try {
+    const response = await isConnected();
+    if (response.error) {
+      console.warn("Freighter isConnected error:", response.error);
       return false;
     }
-  };
-  
-  // 2. Request the user's wallet address (Triggers the Freighter popup)
-  export const retrievePublicKey = async (): Promise<string | null> => {
-    try {
-      // requestAccess() prompts the user to share their public key
-      const accessResponse = await requestAccess();
-      
-      if (accessResponse.error) {
-        console.warn("User denied access or error occurred:", accessResponse.error);
-        return null;
-      }
-      
-      return accessResponse.address || null;
-    } catch (error) {
-      console.error("Failed to retrieve public key:", error);
+    return response.isConnected === true;
+  } catch (error) {
+    console.error("Freighter not detected:", error);
+    return false;
+  }
+};
+
+/**
+ * Check if the user has previously authorized this app in Freighter.
+ */
+export const checkFreighterAuthorization = async (): Promise<boolean> => {
+  try {
+    const response = await isAllowed();
+    if (response.error) return false;
+    return response.isAllowed === true;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Get the active address from Freighter for an already-authorized app.
+ * Use this on page load / reconnect — it does NOT trigger a Freighter popup.
+ */
+export const getFreighterAddress = async (): Promise<string | null> => {
+  try {
+    const response = await getAddress();
+    if (response.error) {
+      console.warn("getAddress error:", response.error);
       return null;
     }
-  };
-  
-  // 3. Check if the user has previously authorized this app
-  export const checkFreighterAuthorization = async (): Promise<boolean> => {
-    try {
-      const allowedResponse = await isAllowed();
-      return allowedResponse.isAllowed === true;
-    } catch (error) {
+    return response.address || null;
+  } catch (error) {
+    console.error("Failed to get address:", error);
+    return null;
+  }
+};
+
+/**
+ * Request wallet access from the user — this triggers the Freighter popup.
+ * Use this when the user explicitly clicks "Connect Wallet".
+ */
+export const requestWalletAccess = async (): Promise<string | null> => {
+  try {
+    const accessResponse = await requestAccess();
+
+    if (accessResponse.error) {
+      console.warn(
+        "User denied access or error occurred:",
+        accessResponse.error
+      );
+      return null;
+    }
+
+    return accessResponse.address || null;
+  } catch (error) {
+    console.error("Failed to request wallet access:", error);
+    return null;
+  }
+};
+
+/**
+ * Prompt Freighter to authorize this app (sets app as "allowed").
+ */
+export const requestFreighterAuthorization = async (): Promise<boolean> => {
+  try {
+    const response = await setAllowed();
+    if (response.error) {
+      console.warn("setAllowed error:", response.error);
       return false;
     }
-  };
-  
-  // 4. Force the authorization prompt if they haven't allowed it yet
-  export const requestFreighterAuthorization = async (): Promise<boolean> => {
-    try {
-      const response = await setAllowed();
-      return response.isAllowed === true;
-    } catch (error) {
-      console.error("Failed to set Freighter authorization:", error);
-      return false;
-    }
-  };
+    return response.isAllowed === true;
+  } catch (error) {
+    console.error("Failed to set Freighter authorization:", error);
+    return false;
+  }
+};
+
+/**
+ * Get the currently selected network from Freighter.
+ */
+export const getFreighterNetwork = async (): Promise<string | null> => {
+  try {
+    const response = await getNetwork();
+    if (response.error) return null;
+    return response.network || null;
+  } catch (error) {
+    return null;
+  }
+};
