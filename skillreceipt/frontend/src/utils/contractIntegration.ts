@@ -173,7 +173,7 @@ export async function signAndSubmitTransaction(
   // 2. Simulate transaction to estimate resource fees and populate footprint
   const simulated = await rpcClient.simulateTransaction(tx);
   if (!rpc.Api.isSimulationSuccess(simulated)) {
-    throw new Error(`Simulation failed for ${methodName}: ${JSON.stringify(simulated)}`);
+    throw new Error('Simulation failed for ' + methodName + ': ' + JSON.stringify(simulated));
   }
   
   // 3. Assemble transaction (adds ledger footprint and resource fee from simulation) and build
@@ -185,13 +185,13 @@ export async function signAndSubmitTransaction(
   });
   
   if (signResult.error) {
-    throw new Error(`Freighter signing failed: ${signResult.error}`);
+    throw new Error('Freighter signing failed: ' + signResult.error);
   }
   
   // 5. Submit signed transaction
   const submission = await submitTransaction(assembledTx, signResult.signedTxXdr);
   if (submission.status === 'ERROR') {
-    throw new Error(`Submission failed: ${JSON.stringify(submission)}`);
+    throw new Error('Submission failed: ' + JSON.stringify(submission));
   }
   
   // 6. Poll transaction status
@@ -214,4 +214,6 @@ export async function signAndSubmitTransaction(
     }
     return true;
   } else {
-    thr
+    throw new Error('Transaction execution failed with status: ' + result.status + '. Detail: ' + JSON.stringify(result));
+  }
+}
