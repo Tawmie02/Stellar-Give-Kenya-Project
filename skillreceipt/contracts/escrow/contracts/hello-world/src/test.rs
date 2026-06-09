@@ -10,7 +10,7 @@ fn setup() -> (Env, EscrowContractClient<'static>, Address, Address) {
     let client = Address::generate(&env);
     let freelancer = Address::generate(&env);
     
-    let contract_id = env.register_contract(None, EscrowContract);
+    let contract_id = env.register(EscrowContract, ());
     let contract_client = EscrowContractClient::new(&env, &contract_id);
 
     (env, contract_client, client, freelancer)

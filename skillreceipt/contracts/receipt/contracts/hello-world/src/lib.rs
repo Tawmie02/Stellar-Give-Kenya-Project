@@ -87,3 +87,6 @@ impl ReceiptContract {
             .expect("Receipt not found")
     }
 }
+
+#[cfg(test)]
+mod test;

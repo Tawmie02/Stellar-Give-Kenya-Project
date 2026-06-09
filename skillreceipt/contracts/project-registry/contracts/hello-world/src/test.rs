@@ -13,7 +13,7 @@ fn test_create_project() {
     let client_user = Address::generate(&env);
 
     // 3. Register your contract in the test environment to get a valid contract ID
-    let contract_id = env.register_contract(None, ProjectRegistry);
+    let contract_id = env.register(ProjectRegistry, ());
 
     // 4. Instantiate the client using both the env and the contract ID
     let contract_client = ProjectRegistryClient::new(&env, &contract_id);
