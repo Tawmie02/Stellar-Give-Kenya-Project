@@ -77,18 +77,24 @@ export function ProjectForm({ redirectOnSuccess = true, compact = false }: Proje
           onChange={(e) => setDescription(e.target.value)}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <input
-            className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500"
-            placeholder="Budget amount (e.g. 1200 XLM)"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <input
-            className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500"
-            placeholder="Deadline"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-slate-500 ml-1">Budget</label>
+            <input
+              className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500"
+              placeholder="Budget amount (e.g. 1200 XLM)"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-slate-500 ml-1">Deadline Calendar</label>
+            <input
+              type="datetime-local"
+              className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 

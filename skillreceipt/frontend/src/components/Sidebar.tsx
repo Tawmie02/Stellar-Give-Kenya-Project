@@ -5,7 +5,6 @@ import type { Role } from '../types';
 const clientNav = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/projects/new', label: 'Create Project' },
-  { to: '/projects', label: 'Marketplace' },
   { to: '/receipts', label: 'Receipts' },
 ];
 
@@ -59,12 +58,6 @@ export function Sidebar() {
       <nav className="space-y-2">
         <NavItems items={items} />
       </nav>
-      <Link
-        to="/onboard"
-        className="mt-6 block rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-      >
-        Switch role
-      </Link>
     </aside>
   );
 }

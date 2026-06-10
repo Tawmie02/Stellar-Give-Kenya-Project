@@ -2,7 +2,7 @@
 
 use soroban_sdk::{
     contract, contractimpl, contracttype,
-    Address, Env,
+    Address, Env, token,
 };
 
 #[derive(Clone)]
@@ -20,6 +20,7 @@ pub struct Escrow {
     pub freelancer: Address,
     pub amount: i128,
     pub status: EscrowStatus,
+    pub token: Address,
 }
 
 #[derive(Clone)]
@@ -37,6 +38,7 @@ impl EscrowContract {
     /// CLIENT deposits funds into escrow
     pub fn deposit(
         env: Env,
+        token: Address,
         project_id: u64,
         client: Address,
         freelancer: Address,
@@ -44,17 +46,28 @@ impl EscrowContract {
     ) {
         client.require_auth();
 
+        // Transfer tokens from the client to the escrow contract
+        let client_token = token::Client::new(&env, &token);
+        client_token.transfer(&client, &env.current_contract_address(), &amount);
+
         let escrow = Escrow {
             project_id,
             client: client.clone(),
-            freelancer,
+            freelancer: freelancer.clone(),
             amount,
             status: EscrowStatus::Locked,
+            token,
         };
 
         env.storage()
             .instance()
             .set(&DataKey::Escrow(project_id), &escrow);
+
+        // Emit Stellar Event for escrow deposit
+        env.events().publish(
+            (soroban_sdk::symbol_short!("escrow"), soroban_sdk::symbol_short!("deposit")),
+            (project_id, client, freelancer, amount)
+        );
     }
 
     /// FREELANCER signals completion (no money movement yet)
@@ -74,7 +87,11 @@ impl EscrowContract {
             panic!("Not assigned freelancer");
         }
 
-        // No status change required for MVP (kept simple)
+        // Emit Stellar Event for completion signal
+        env.events().publish(
+            (soroban_sdk::symbol_short!("escrow"), soroban_sdk::symbol_short!("complete")),
+            (project_id, freelancer)
+        );
     }
 
     /// CLIENT approves + releases funds
@@ -99,8 +116,9 @@ impl EscrowContract {
             panic!("Already released");
         }
 
-        // ⚠️ In real Stellar integration, you'd transfer tokens here
-        // For MVP: we simulate release by returning amount
+        // Transfer tokens from this contract to the freelancer
+        let client_token = token::Client::new(&env, &escrow.token);
+        client_token.transfer(&env.current_contract_address(), &escrow.freelancer, &escrow.amount);
 
         let mut updated = escrow.clone();
         updated.status = EscrowStatus::Released;
@@ -108,6 +126,12 @@ impl EscrowContract {
         env.storage()
             .instance()
             .set(&DataKey::Escrow(project_id), &updated);
+
+        // Emit Stellar Event for payout release
+        env.events().publish(
+            (soroban_sdk::symbol_short!("escrow"), soroban_sdk::symbol_short!("release")),
+            (project_id, client, escrow.freelancer, escrow.amount)
+        );
 
         escrow.amount
     }

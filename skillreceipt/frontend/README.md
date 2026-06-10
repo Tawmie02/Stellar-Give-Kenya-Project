@@ -49,3 +49,4 @@ This folder contains the React + Vite frontend for SkillReceipt.
 - Use route guards only where necessary.
 - Build the happy path first for the demo.
 - Read contract state after every successful write.
+

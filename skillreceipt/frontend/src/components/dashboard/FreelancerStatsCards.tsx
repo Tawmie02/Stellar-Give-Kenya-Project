@@ -13,22 +13,26 @@ function StatCard({ label, value, hint }: { label: string; value: string | numbe
 
 export function FreelancerStatsCards() {
   const { address } = useWallet();
-  const { projects, applications, receipts } = useProjects();
+  const { projects, receipts } = useProjects();
 
   const available = projects.filter((p) => p.status === 'OPEN');
-  const myApplications = applications.filter((a) => a.freelancerAddress === address);
   const activeJobs = projects.filter(
     (p) => p.freelancerAddress === address && (p.status === 'ASSIGNED' || p.status === 'COMPLETED'),
   );
   const myReceipts = receipts.filter((r) => r.freelancerAddress === address);
-  const totalEarnings = myReceipts.length;
+  
+  // Calculate total XLM earned from completed and minted receipts
+  const totalXlmEarned = myReceipts.reduce((sum, r) => {
+    const amt = parseInt(r.amount.replace(/[^0-9]/g, '')) || 0;
+    return sum + amt;
+  }, 0);
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <StatCard label="Available" value={available.length} hint="Open projects to apply" />
-      <StatCard label="Applications" value={myApplications.length} hint="Proposals you submitted" />
-      <StatCard label="Active jobs" value={activeJobs.length} hint="Assigned or awaiting approval" />
-      <StatCard label="Receipts" value={totalEarnings} hint="Completed payments received" />
+      <StatCard label="Available Projects" value={available.length} hint="Open projects on feed" />
+      <StatCard label="Active Jobs" value={activeJobs.length} hint="Work in progress" />
+      <StatCard label="SkillReceipts" value={myReceipts.length} hint="Verified proof-of-work records" />
+      <StatCard label="Total Earnings" value={`${totalXlmEarned.toLocaleString()} XLM`} hint="Total payments received" />
     </div>
   );
 }

@@ -62,8 +62,8 @@ impl ReceiptContract {
         let receipt = Receipt {
             id: counter,
             project_id,
-            client,
-            freelancer,
+            client: client.clone(),
+            freelancer: freelancer.clone(),
             amount,
             timestamp,
         };
@@ -75,6 +75,12 @@ impl ReceiptContract {
         env.storage()
             .instance()
             .set(&DataKey::Counter, &counter);
+
+        // Emit Stellar Event for receipt minting
+        env.events().publish(
+            (soroban_sdk::symbol_short!("receipt"), soroban_sdk::symbol_short!("mint")),
+            (counter, project_id, client, freelancer, amount)
+        );
 
         counter
     }
